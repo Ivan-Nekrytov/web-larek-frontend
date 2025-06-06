@@ -174,12 +174,46 @@ yarn build
 
         Интерфейс IView описывает базовое поведение компонентов отображения.
 
-    События (events.ts)
+    Событийная система
 
-        export type EventType = /* ... */;
-        export interface EventPayloadMap { /* ... */ }
+        В проекте используется брокер событий (`EventEmitter`) для связи между слоями приложения.  
+        Все события типизированы через `EventType` и `EventPayloadMap`.
 
-        Типы событий позволяют безопасно работать с брокером событий и явно указывать полезную нагрузку для каждого события.
+      
+        export type EventType =
+                | 'product:select'
+                | 'cart:add'
+                | 'cart:remove'
+                | 'cart:clear'
+                | 'order:submit'
+                | 'order:success'
+                | 'order:error'
+                | 'modal:open'
+                | 'modal:close'
+
+        export interface EventPayloadMap {
+                'product:select': { id: string }
+                'cart:add': { product: Product }
+                'cart:remove': { id: string }
+                'cart:clear': void
+                'order:submit': { data: ApiOrder }
+                'order:success': { id: string }
+                'order:error': { message: string }
+                'modal:open': { content: HTMLElement }
+                'modal:close': void
+        }
+
+        Примеры использования
+        Событие	                Эмитит	                Обрабатывает	        Назначение
+        product:select	        ProductCardView	        ModalPresenter	        Открыть карточку товара
+        cart:add	        ProductCardView	        CartPresenter	        Добавить товар в корзину
+        cart:remove	        CartView	        CartPresenter	        Удалить товар из корзины
+        cart:clear	        OrderModel	        CartPresenter	        Очистить корзину после успешного заказа
+        order:submit	        OrderFormView	        OrderPresenter	        Отправить заказ
+        order:success	        OrderModel	        SuccessOrderView	Показать сообщение об успешном заказе
+        order:error	        OrderModel	        OrderFormView	        Показать ошибки валидации
+        modal:open	        Любой компонент	        ModalView	        Показать модалку с переданным содержимым
+        modal:close	        ModalView, кнопка	ModalView	        Закрыть текущее модальное окно
 
     API-клиент (api-client.ts)
 
@@ -243,10 +277,28 @@ yarn build
 
     ProductCardView
 
-      Отвечает за отображение одной карточки товара.
+        Назначение:  
+                Отображает одну карточку товара: изображение, название, цену, кнопку «Купить». Эмитит события при клике.
 
-          Показывает изображение, название, цену.
-          Вызывает события при клике по карточке или кнопке «Купить».
+                Конструктор:
+                     constructor(container: HTMLElement, emitter: EventEmitter)
+
+                Поля:
+
+                        private container: HTMLElement
+                        private product: Product
+                        private emitter: EventEmitter
+
+                Методы:
+
+                        render(product: Product): void // Отображает товар в карточке
+
+                        bindEvents(): void // Навешивает обработчики клика
+
+                        show(): void
+                        hide(): void
+
+
 
     ProductListView
 
@@ -258,27 +310,117 @@ yarn build
 
     CartView
 
-        Отображает содержимое корзины и умеет:
+        Назначение:  
+                Отображает модальное окно корзины со списком товаров и общей суммой. Показывает/скрывает окно. Управляет кликами по кнопкам "убрать", "оформить заказ".
 
-            показывать список добавленных товаров;
-            отображать общую стоимость;
-            отслеживать клики по кнопкам «Убрать» и «Оформить заказ».
+                Конструктор:
+                        constructor(container: HTMLElement, emitter: EventEmitter)
+
+                Поля:
+
+                        private container: HTMLElement
+                        private emitter: EventEmitter
+
+                Методы:
+
+                        render(items: CartItem[]): void // Отображает товары в корзине
+
+                     show(): void
+                        hide(): void
+
+                        bindEvents(): void // Назначает обработчики кликов
+
+                        setTotal(price: number): void // Обновляет отображение суммы
 
     ModalView
 
-        Обеспечивает показ модальных окон:
+                Назначение:  
+                        Базовый компонент для отображения модальных окон. Позволяет вставлять внутрь любое содержимое.
 
-            открытие и закрытие по крестику или фону;
-            вставка произвольного содержимого внутрь окна.
+                Конструктор:
+                        constructor(container: HTMLElement)
+
+                Поля:
+
+                        private container: HTMLElement
+                        private content: HTMLElement
+
+                Методы:
+
+                        setContent(content: HTMLElement): void // Заменяет содержимое модального окна
+
+                        open(): void
+                        close(): void
+                        bindCloseEvents(): void // Назначает закрытие по крестику и клику вне окна
 
     OrderFormView
 
-        Компонент формы заказа:
+        Назначение:  
+                Представляет форму заказа: два шага (адрес и способ оплаты, контактные данные). Отображает поля, ошибки, управляет валидацией внешне (UI).
 
-            шаг 1: выбор оплаты и адрес;
-            шаг 2: контактные данные.
+                Конструктор:
+                        constructor(step: 1 | 2, emitter: EventEmitter)
 
-        Предоставляет методы для валидации и получения данных формы.
+                Поля:
+
+                        private step: 1 | 2
+                        private emitter: EventEmitter
+                        private errors: Record<string, string>
+
+                Методы:
+
+                        render(data?: Record<string, string>): void // Отображает форму (с полями и ошибками)
+
+                        getData(): Record<string, string> // Возвращает значения полей
+
+                        setErrors(errors: Record<string, string>): void // Показывает ошибки, полученные от модели
+
+                        show(): void
+                        hide(): void
+
+        HeaderView
+                Назначение:  
+                        Отображает кнопку «Корзина» с количеством товаров. Эмитит событие при клике по кнопке.
+
+                Конструктор:
+                        constructor(container: HTMLElement, emitter: EventEmitter)
+
+                Поля:
+
+                        private container: HTMLElement
+                        private counter: HTMLElement
+                        private emitter: EventEmitter
+
+                Методы:
+
+                        updateCounter(count: number): void // Обновляет счётчик товаров
+
+                        bindEvents(): void // Назначает обработчик на кнопку
+
+                        show(): void
+                        hide(): void                        
+
+        SuccessOrderView
+
+                Назначение:
+                        Модальное окно с сообщением об успешном заказе. Отображает номер заказа и кнопку «Продолжить».
+
+                Конструктор:
+                        constructor(container: HTMLElement)
+
+                Поля:
+
+                        private container: HTMLElement
+
+                Методы:
+
+                        render(orderId: string): void // Показывает сообщение и номер заказа
+
+                        bindEvents(): void // Назначает обработчик на кнопку
+
+                        show(): void
+                        hide(): void
+
 
 Модели данных (Model)
 
@@ -286,55 +428,94 @@ yarn build
 
     ProductModel
 
-        Отвечает за:
+        Назначение:  
+                Модель хранения и доступа к каталогу товаров. Загружает список с сервера, предоставляет методы доступа к данным.
 
-            загрузку товаров с сервера;
-            хранение каталога;
-            фильтрацию и поиск.
+
+        Конструктор:
+                constructor(api: IApiClient)
+
+        Поля:
+                private products: Product[]  // Список всех товаров
 
         Методы:
+                loadProducts(): Promise<void>  // Загружает товары с сервера и сохраняет в поле products.
 
-            loadProducts() — загружает товары из API;
-            getProductById(id) — возвращает товар по ID;
-            getAll() — возвращает весь каталог.
+                getAll(): Product[]  // Возвращает список всех товаров.
+
+                getById(id: string): Product | undefined  // Возвращает товар по его ID.
 
     CartModel
 
-        Хранит список товаров, добавленных в корзину. Предоставляет методы для работы с корзиной:
+        Назначение:  
+                Модель управления корзиной. Хранит список добавленных товаров, рассчитывает общую стоимость, управляет добавлением и удалением.
 
-            add(product) — добавляет товар;
-            remove(productId) — удаляет товар;
-            clear() — очищает корзину;
-            getTotal() — возвращает общую стоимость;
-            getItems() — возвращает список товаров в корзине.
+        Конструктор:
+                constructor()
+
+        Поля:
+                private items: CartItem[]  // Товары в корзине
+
+        Методы:
+                addItem(item: CartItem): void  // Добавляет товар в корзину. Если товар уже есть — не добавляет повторно.
+
+                removeItem(productId: string): void // Удаляет товар по его ID.
+
+                clear(): void  // Очищает всю корзину.
+
+                getItems(): CartItem[]  // Возвращает текущие товары в корзине.
+
+                getTotal(): number  // Возвращает общую стоимость всех товаров.
+
+                isInCart(productId: string): boolean  // Проверяет, добавлен ли товар в корзину.
 
         Также отправляет события: cart:updated, cart:cleared.
-        OrderModel
 
-        Отвечает за оформление заказа:
+    OrderModel
 
-            хранит данные формы;
-            валидирует поля;
-            отправляет заказ на сервер через API.
+        Назначение:  
+                Модель оформления заказа. Хранит данные из формы, валидирует их, отправляет заказ на сервер.
+            
+        Конструктор:
+                constructor(api: IApiClient)
+
+        Поля:
+                private payment: 'online' | 'cash'
+                private address: string
+                private email: string
+                private phone: string
+                private items: string[]  // ID товаров
 
         Методы:
 
-            setStep1(data) — сохраняет способ оплаты и адрес;
-            setStep2(data) — сохраняет контакты;
-            submitOrder() — отправляет заказ;
-            validate() — проверяет заполненность обязательных полей.
+                setStep1(data: { payment: 'online' | 'cash'; address: string }): void  // Сохраняет способ оплаты и адрес.
+
+                setStep2(data: { email: string; phone: string }): void  // Сохраняет контактные данные.
+
+                validate(): { valid: boolean; errors: Record<string, string> }  // Проверяет все поля. Возвращает статус и ошибки по полям.
+
+                submit(): Promise<{ id: string }>  // Отправляет заказ на сервер через API.
 
         Также генерирует события: order:submitted, order:error.
 
     ApiClient
 
-        Класс-обёртка над HTTP-запросами. Предоставляет методы для взаимодействия с сервером:
+        Назначение:
+                Класс для выполнения сетевых запросов к серверу. Обёртка над HTTP API. Используется моделями (`ProductModel`, `OrderModel`), но не зависит от интерфейса.
 
-            getProducts()
-            getProduct(id)
-            submitOrder(orderData)
+        Конструктор:
+                constructor(baseUrl: string)
 
-        Реализован в слое services и не связан с отображением или логикой.
+        Поля:
+                private baseUrl: string  // Базовый адрес API
+
+        Методы:
+
+                getProductList(): Promise<ApiProduct[]> // Загружает список товаров
+
+                getProductById(id: string): Promise<ApiProduct> // Загружает один товар по ID
+
+                createOrder(order: ApiOrder): Promise<{ id: string }> // Отправляет заказ на сервер
 
 Взаимодействие частей приложения
 
