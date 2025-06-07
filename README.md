@@ -300,13 +300,23 @@ yarn build
 
 
 
-    ProductListView
+        ProductListView
 
-        Контейнер для списка карточек. Умеет:
+                Назначение:  
+                        Контейнер для списка карточек товаров. Отвечает за отрисовку и обновление содержимого.
 
-            отрисовывать массив товаров;
-            очищать список;
-            обновлять содержимое.
+                Конструктор:
+                        constructor(container: HTMLElement)
+
+                Поля:
+
+                        private container: HTMLElement
+
+                Методы:
+
+                        render(products: Product[]): void // Отрисовывает массив карточек товаров
+
+                        clear(): void // Очищает содержимое контейнера
 
     CartView
 
@@ -324,9 +334,6 @@ yarn build
                 Методы:
 
                         render(items: CartItem[]): void // Отображает товары в корзине
-
-                     show(): void
-                        hide(): void
 
                         bindEvents(): void // Назначает обработчики кликов
 
@@ -414,7 +421,7 @@ yarn build
 
                 Методы:
 
-                        render(orderId: string): void // Показывает сообщение и номер заказа
+                        render(orderId: string, total: number): void // Показывает сообщение с номером заказа и общей суммой
 
                         bindEvents(): void // Назначает обработчик на кнопку
 
@@ -469,34 +476,32 @@ yarn build
 
                 isInCart(productId: string): boolean  // Проверяет, добавлен ли товар в корзину.
 
-        Также отправляет события: cart:updated, cart:cleared.
+                Также отправляет события: cart:updated, cart:cleared.
 
-    OrderModel
+        OrderModel
 
-        Назначение:  
-                Модель оформления заказа. Хранит данные из формы, валидирует их, отправляет заказ на сервер.
-            
-        Конструктор:
-                constructor(api: IApiClient)
+                Назначение:  
+                        Модель оформления заказа. Хранит данные формы, валидирует их, а при отправке объединяет их с данными корзины и отправляет на сервер.
 
-        Поля:
-                private payment: 'online' | 'cash'
-                private address: string
-                private email: string
-                private phone: string
-                private items: string[]  // ID товаров
+                Конструктор:
+                        constructor(api: IApiClient)
 
-        Методы:
+                Поля:
 
-                setStep1(data: { payment: 'online' | 'cash'; address: string }): void  // Сохраняет способ оплаты и адрес.
+                        private payment: 'online' | 'cash'
+                        private address: string
+                        private email: string
+                        private phone: string
 
-                setStep2(data: { email: string; phone: string }): void  // Сохраняет контактные данные.
+                Методы:
 
-                validate(): { valid: boolean; errors: Record<string, string> }  // Проверяет все поля. Возвращает статус и ошибки по полям.
+                        setStep1(data: { payment: 'online' | 'cash'; address: string }): void
+                        setStep2(data: { email: string; phone: string }): void
 
-                submit(): Promise<{ id: string }>  // Отправляет заказ на сервер через API.
+                        validate(): { valid: boolean; errors: Record<string, string> }
 
-        Также генерирует события: order:submitted, order:error.
+                        submit(items: string[], total: number): Promise<{ id: string }>
+                        // Объединяет данные формы с товарами и суммой, отправляет заказ
 
     ApiClient
 
