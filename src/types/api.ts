@@ -1,18 +1,29 @@
-// Описание товара, получаемого с сервера
 export interface ApiProduct {
   id: string;
   title: string;
   description: string;
-  price: number;
-  category: string;
   image: string;
+  category: string;
+  price: number | null;
 }
 
-// Заказ, отправляемый на сервер
-export interface ApiOrder {
-  payment: string;
-  address: string;
+export interface ApiList<T> {
+  total: number;
+  items: T[];
+}
+
+export interface OrderRequest {
+  payment: 'cash' | 'online';
   email: string;
   phone: string;
-  items: string[]; // id товаров
+  address: string;
+  total: number;
+  items: string[]; 
 }
+
+export interface OrderResponse {
+  id: string;
+  total: number;
+}
+
+export type PaymentMethod = 'cash' | 'online';

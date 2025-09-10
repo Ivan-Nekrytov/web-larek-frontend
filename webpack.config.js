@@ -1,5 +1,3 @@
-// Generated using webpack-cli https://github.com/webpack/webpack-cli
-
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
@@ -20,12 +18,19 @@ const config = {
   output: {
     path: path.resolve(__dirname, "dist"),
   },
-  devServer: {
-    open: true,
-    host: "localhost",
-    watchFiles: ["src/pages/*.html"],
-    hot: true
+devServer: {
+  open: true,
+  host: "localhost",
+  watchFiles: ["src/pages/*.html"],
+  hot: true,
+  proxy: {
+    '/api/weblarek': {
+      target: 'http://localhost:3000',
+      changeOrigin: true,
+    },
   },
+},
+
   plugins: [
     new HtmlWebpackPlugin({
       template: "src/pages/index.html"

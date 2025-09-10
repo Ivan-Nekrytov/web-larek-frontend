@@ -1,4 +1,15 @@
-// Элемент корзины в модели
+import type { PaymentMethod } from './api';
+
+export interface CatalogItem {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  category: string;       
+  price: number | null; 
+}
+
+
 export interface CartItem {
   id: string;
   title: string;
@@ -6,10 +17,12 @@ export interface CartItem {
   quantity: number;
 }
 
-export interface CartModel {
-  items: CartItem[];
-  getTotal(): number;
-  addItem(item: CartItem): void;
-  removeItem(id: string): void;
-  clear(): void;
+export interface OrderStage1 {
+  payment: PaymentMethod | null;
+  address: string;
+}
+
+export interface OrderStage2 {
+  email: string;
+  phone: string;
 }

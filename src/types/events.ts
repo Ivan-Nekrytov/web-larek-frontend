@@ -1,5 +1,5 @@
 import { CartItem } from './models';
-import { ApiOrder } from './api';
+import { OrderRequest} from './api';
 
 
 export type EventType =
@@ -16,7 +16,7 @@ export interface EventPayloadMap {
   'product:select': { id: string };
   'cart:add': { product: CartItem };
   'cart:remove': { id: string };
-  'order:submit': { order: ApiOrder };
+  'order:submit': { order: OrderRequest };
   'checkout:step1': undefined;
   'checkout:step2': undefined;
   'modal:open': undefined;
