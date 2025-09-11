@@ -1,18 +1,15 @@
-import { Api } from '../base/api';
-import { ApiProduct, ApiList, OrderRequest, OrderResponse } from '../../types';
-import { API_URL, CDN_URL } from '../../utils/constants';
+import { Api, ApiListResponse } from '../base/api';
+import type { ApiProduct, OrderRequest, OrderResponse } from '../../types';
 
 export class ApiClient extends Api {
-  constructor() {
-    super(API_URL, CDN_URL);
-  }
-
   async getProducts(): Promise<ApiProduct[]> {
-    const res = await this.get<ApiList<ApiProduct>>('/products');
-    return res.items;
+    const data = await this.get<ApiListResponse<ApiProduct>>('/product/');
+    return data.items ?? [];
   }
-
-  async order(data: OrderRequest): Promise<OrderResponse> {
-    return this.post<OrderResponse>('/order', data);
+  async getProduct(id: string): Promise<ApiProduct> {
+    return this.get<ApiProduct>(`/product/${id}`);
+  }
+  async createOrder(order: OrderRequest): Promise<OrderResponse> {
+    return this.post<OrderResponse>('/order', order);
   }
 }

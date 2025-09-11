@@ -1,4 +1,5 @@
 import './scss/styles.scss';
+import { API_URL, CDN_URL } from './utils/constants';
 import { ensureElement } from './utils/utils';
 import { EventBus } from './components/base/events';
 import { ApiClient } from './components/models/ApiClient';
@@ -12,7 +13,7 @@ import { FormOrder } from './components/views/FormOrder';
 import { FormContacts } from './components/views/FormContacts';
 import { Modal } from './components/views/Modal';
 import { Success } from './components/views/Success';
-import { ApiProduct, PaymentMethod } from './types';
+import { PaymentMethod } from './types/api';
 
 const gallery = ensureElement<HTMLElement>('.gallery');
 const basketButton = ensureElement<HTMLButtonElement>('.header__basket');
@@ -28,9 +29,8 @@ const tplContacts = ensureElement<HTMLTemplateElement>('#contacts');
 const tplSuccess = ensureElement<HTMLTemplateElement>('#success');
 
 const events = new EventBus();
-// ApiClient создаём без аргументов — в нём уже используются API_URL и CDN_URL
-const api = new ApiClient();
-const catalog = new CatalogStore();
+const api = new ApiClient(API_URL, CDN_URL);
+const catalog = new CatalogStore(CDN_URL);
 const cart = new CartStore();
 const checkout = new CheckoutStore();
 const modal = new Modal(modalRoot);
@@ -39,9 +39,9 @@ function updateCounter() {
   basketCounter.textContent = String(cart.count);
 }
 
-function renderCatalog(products: ApiProduct[]) {
+function renderCatalog() {
   gallery.innerHTML = '';
-  products.forEach((item) => {
+  catalog.items.forEach((item) => {
     const card = new Card(tplCard, (id) => events.emit('card:open', { id }));
     gallery.append(card.render(item));
   });
@@ -49,9 +49,9 @@ function renderCatalog(products: ApiProduct[]) {
 
 api
   .getProducts()
-  .then((products) => {
-    catalog.setProducts(products);
-    renderCatalog(products);
+  .then((items) => {
+    catalog.load(items);
+    renderCatalog();
   })
   .catch((err) => {
     console.error(err);
@@ -62,10 +62,9 @@ api
 basketButton.addEventListener('click', () => events.emit('cart:open'));
 
 events.on('card:open', ({ id }: { id: string }) => {
-  const item = catalog.getProduct(id);
+  const item = catalog.getById(id);
   if (!item) return;
 
-  // CardPreview принимает только 3 аргумента
   const preview = new CardPreview(tplPreview, item, cart.has(id));
   preview.setOnToggle(() => {
     if (cart.has(id)) {
@@ -74,7 +73,11 @@ events.on('card:open', ({ id }: { id: string }) => {
       cart.add(item);
     }
     updateCounter();
-    events.emit('card:open', { id });
+
+    // перерисовать превью после изменения
+    const updatedPreview = new CardPreview(tplPreview, item, cart.has(id));
+    updatedPreview.setOnToggle(preview['onToggle']!);
+    modal.setContent(updatedPreview.render());
   });
 
   modal.setContent(preview.render());
@@ -121,7 +124,7 @@ events.on('contacts:open', () => {
     };
 
     api
-      .order(order)
+      .createOrder(order)
       .then((res) => {
         const success = new Success(tplSuccess, () => {
           modal.close();

@@ -5,10 +5,9 @@ export interface CatalogItem {
   title: string;
   description: string;
   image: string;
-  category: string;       
-  price: number | null; 
+  price: number | null;
+  category?: string;
 }
-
 
 export interface CartItem {
   id: string;

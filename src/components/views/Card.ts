@@ -1,26 +1,28 @@
-import { CatalogItem } from '../../types';
+import { CatalogItem } from '../models/CatalogStore';
 
 export class Card {
-  private template: HTMLTemplateElement;
-  private onClick: (id: string) => void;
+  private element: HTMLElement;
+  private titleEl: HTMLElement | null;
+  private priceEl: HTMLElement | null;
+  private imgEl: HTMLImageElement | null;
 
-  constructor(template: HTMLTemplateElement, onClick: (id: string) => void) {
-    this.template = template;
-    this.onClick = onClick;
+  constructor(
+    template: HTMLTemplateElement,
+    private onClick: (id: string) => void
+  ) {
+    this.element = template.content.firstElementChild!.cloneNode(true) as HTMLElement;
+    this.titleEl = this.element.querySelector('.card__title');
+    this.priceEl = this.element.querySelector('.card__price');
+    this.imgEl = this.element.querySelector('.card__image');
   }
 
-  render(product: CatalogItem): HTMLElement {
-    const card = this.template.content.firstElementChild!.cloneNode(true) as HTMLElement;
+  render(item: CatalogItem): HTMLElement {
+    if (this.titleEl) this.titleEl.textContent = item.title;
+    if (this.priceEl) this.priceEl.textContent = item.price + ' ₽';
+    if (this.imgEl) this.imgEl.src = item.image;
 
-    const title = card.querySelector('.card__title');
-    const price = card.querySelector('.card__price');
-    const image = card.querySelector<HTMLImageElement>('.card__image');
+    this.element.onclick = () => this.onClick(item.id);
 
-    if (title) title.textContent = product.title;
-    if (price) price.textContent = product.price ? `${product.price} ₽` : 'Бесплатно';
-    if (image) image.src = product.image;
-
-    card.addEventListener('click', () => this.onClick(product.id));
-    return card;
+    return this.element;
   }
 }

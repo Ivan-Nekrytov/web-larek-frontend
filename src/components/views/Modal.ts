@@ -1,42 +1,34 @@
 export class Modal {
   private root: HTMLElement;
-  private container: HTMLElement;
   private content: HTMLElement;
-  private closeBtn: HTMLElement;
+  private closeBtn: HTMLButtonElement | null;
 
   constructor(root: HTMLElement) {
     this.root = root;
-    this.container = this.root.querySelector('.modal__container') as HTMLElement;
-    this.content = this.root.querySelector('.modal__content') as HTMLElement;
-    this.closeBtn = this.root.querySelector('.modal__close') as HTMLElement;
+    this.content = this.root.querySelector('.modal__content')!;
+    this.closeBtn = this.root.querySelector('.modal__close');
 
-    this.onOverlayClick = this.onOverlayClick.bind(this);
-    this.onCloseClick = this.onCloseClick.bind(this);
+    if (this.closeBtn) {
+      this.closeBtn.addEventListener('click', () => this.close());
+    }
 
-    this.container.addEventListener('click', (e) => e.stopPropagation());
-    this.root.addEventListener('click', this.onOverlayClick);
-    this.closeBtn.addEventListener('click', this.onCloseClick);
+    this.root.addEventListener('click', (e) => {
+      if (e.target === this.root) {
+        this.close();
+      }
+    });
   }
 
-  private onOverlayClick() {
-    this.close();
-  }
-
-  private onCloseClick() {
-    this.close();
-  }
-
-  public setContent(content: HTMLElement): void {
+  setContent(content: HTMLElement) {
     this.content.innerHTML = '';
     this.content.append(content);
   }
 
-  public open(): void {
+  open() {
     this.root.classList.add('modal_active');
   }
 
-  public close(): void {
+  close() {
     this.root.classList.remove('modal_active');
-    this.content.innerHTML = '';
   }
 }

@@ -1,49 +1,42 @@
-import { ensureElement } from '../../utils/utils';
+import { ApiProduct } from '../../types';
 
 export class Basket {
-  protected template: HTMLTemplateElement;
-  protected templateItem: HTMLTemplateElement;
-  protected onSubmit: () => void;
-  protected onRemove: (id: string) => void;
+  private template: HTMLTemplateElement;
+  private itemTemplate: HTMLTemplateElement;
+  private element: HTMLElement;
+  private listEl: HTMLElement;
+  private totalEl: HTMLElement;
+  private orderButton: HTMLButtonElement;
 
   constructor(
-    tpl: HTMLTemplateElement,
-    tplItem: HTMLTemplateElement,
-    onSubmit: () => void,
-    onRemove: (id: string) => void
+    template: HTMLTemplateElement,
+    itemTemplate: HTMLTemplateElement,
+    private onCheckout?: () => void,
+    private onRemove?: (id: string) => void
   ) {
-    this.template = tpl;
-    this.templateItem = tplItem;
-    this.onSubmit = onSubmit;
-    this.onRemove = onRemove;
+    this.template = template;
+    this.itemTemplate = itemTemplate;
+    this.element = this.template.content.firstElementChild!.cloneNode(true) as HTMLElement;
+    this.listEl = this.element.querySelector('.basket__list')!;
+    this.totalEl = this.element.querySelector('.basket__price')!;
+    this.orderButton = this.element.querySelector('.basket__order') as HTMLButtonElement;
   }
 
-  render(items: { id: string; title: string; price: number }[], total: number): HTMLElement {
-    const node = this.template.content.firstElementChild!.cloneNode(true) as HTMLElement;
-
-    const list = ensureElement<HTMLElement>('.basket__list', node);
-    list.innerHTML = '';
+  render(items: ApiProduct[], total: number): HTMLElement {
+    this.listEl.innerHTML = '';
 
     items.forEach((item) => {
-      const basketItem = this.templateItem.content.firstElementChild!.cloneNode(true) as HTMLElement;
-      const title = ensureElement<HTMLElement>('.card__title', basketItem);
-      const price = ensureElement<HTMLElement>('.card__price', basketItem);
-      const removeBtn = ensureElement<HTMLButtonElement>('.card__remove', basketItem);
-
-      title.textContent = item.title;
-      price.textContent = `${item.price} синапсов`;
-
-      removeBtn.addEventListener('click', () => this.onRemove(item.id));
-
-      list.appendChild(basketItem);
+      const node = this.itemTemplate.content.firstElementChild!.cloneNode(true) as HTMLElement;
+      node.querySelector('.card__title')!.textContent = item.title;
+      node.querySelector('.card__price')!.textContent = item.price ? `${item.price} ₽` : 'Бесценно';
+      node.querySelector('.card__delete')!.addEventListener('click', () => this.onRemove?.(item.id));
+      this.listEl.appendChild(node);
     });
 
-    const totalEl = ensureElement<HTMLElement>('.basket__price', node);
-    totalEl.textContent = `${total} синапсов`;
+    this.totalEl.textContent = `${total} ₽`;
+    this.orderButton.disabled = items.length === 0;
+    this.orderButton.onclick = () => this.onCheckout?.();
 
-    const submitBtn = ensureElement<HTMLButtonElement>('.basket__button', node);
-    submitBtn.addEventListener('click', () => this.onSubmit());
-
-    return node;
+    return this.element;
   }
 }

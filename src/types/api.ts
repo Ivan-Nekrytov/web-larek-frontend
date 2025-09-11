@@ -3,8 +3,8 @@ export interface ApiProduct {
   title: string;
   description: string;
   image: string;
-  category: string;
   price: number | null;
+  category?: string;
 }
 
 export interface ApiList<T> {
@@ -12,18 +12,18 @@ export interface ApiList<T> {
   items: T[];
 }
 
+export type PaymentMethod = 'online' | 'cash';
+
 export interface OrderRequest {
-  payment: 'cash' | 'online';
+  payment: PaymentMethod;
   email: string;
   phone: string;
   address: string;
   total: number;
-  items: string[]; 
+  items: string[];
 }
 
 export interface OrderResponse {
   id: string;
   total: number;
 }
-
-export type PaymentMethod = 'cash' | 'online';

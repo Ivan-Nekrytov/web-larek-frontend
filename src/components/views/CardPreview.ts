@@ -1,15 +1,28 @@
-import { CatalogItem } from '../../types';
+import { CatalogItem } from '../models/CatalogStore';
 
 export class CardPreview {
-  private template: HTMLTemplateElement;
-  private product: CatalogItem;
-  private inCart: boolean;
+  private element: HTMLElement;
+  private titleEl: HTMLElement | null;
+  private descriptionEl: HTMLElement | null;
+  private priceEl: HTMLElement | null;
+  private imgEl: HTMLImageElement | null;
+  private buttonEl: HTMLButtonElement | null;
+
   private onToggle: (() => void) | null = null;
 
-  constructor(template: HTMLTemplateElement, product: CatalogItem, inCart: boolean) {
-    this.template = template;
-    this.product = product;
-    this.inCart = inCart;
+  constructor(template: HTMLTemplateElement, private product: CatalogItem, private inCart: boolean) {
+    this.element = template.content.firstElementChild!.cloneNode(true) as HTMLElement;
+    this.titleEl = this.element.querySelector('.card__title');
+    this.descriptionEl = this.element.querySelector('.card__description');
+    this.priceEl = this.element.querySelector('.card__price');
+    this.imgEl = this.element.querySelector('.card__image');
+    this.buttonEl = this.element.querySelector('.card__button');
+
+    if (this.buttonEl) {
+      this.buttonEl.addEventListener('click', () => {
+        if (this.onToggle) this.onToggle();
+      });
+    }
   }
 
   setOnToggle(handler: () => void) {
@@ -17,23 +30,15 @@ export class CardPreview {
   }
 
   render(): HTMLElement {
-    const element = this.template.content.firstElementChild!.cloneNode(true) as HTMLElement;
+    if (this.titleEl) this.titleEl.textContent = this.product.title;
+    if (this.descriptionEl) this.descriptionEl.textContent = this.product.description;
+    if (this.priceEl) this.priceEl.textContent = this.product.price + ' ₽';
+    if (this.imgEl) this.imgEl.src = this.product.image;
 
-    const title = element.querySelector('.card__title');
-    const description = element.querySelector('.card__description');
-    const price = element.querySelector('.card__price');
-    const image = element.querySelector<HTMLImageElement>('.card__image');
-    const button = element.querySelector<HTMLButtonElement>('.card__button');
-
-    if (title) title.textContent = this.product.title;
-    if (description) description.textContent = this.product.description;
-    if (price) price.textContent = this.product.price ? `${this.product.price} ₽` : 'Бесплатно';
-    if (image) image.src = this.product.image;
-    if (button) {
-      button.textContent = this.inCart ? 'Удалить из корзины' : 'Добавить в корзину';
-      button.addEventListener('click', () => this.onToggle?.());
+    if (this.buttonEl) {
+      this.buttonEl.textContent = this.inCart ? 'Убрать из корзины' : 'В корзину';
     }
 
-    return element;
+    return this.element;
   }
 }

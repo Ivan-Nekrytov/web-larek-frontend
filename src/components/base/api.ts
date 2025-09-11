@@ -1,30 +1,24 @@
+export type ApiListResponse<T> = { total: number; items: T[] };
+
 export class Api {
-  protected readonly baseUrl: string;
-  protected readonly cdn: string;
+  constructor(public baseUrl: string, public cdnUrl: string) {}
 
-  constructor(baseUrl: string, cdn: string) {
-    this.baseUrl = baseUrl;
-    this.cdn = cdn;
-  }
-
-  protected async handleResponse<T>(response: Response): Promise<T> {
-    if (!response.ok) {
-      throw new Error(`${response.status} ${response.statusText}`);
+  protected async request<T>(path: string, options: RequestInit = {}): Promise<T> {
+    const url = path.startsWith('http') ? path : `${this.baseUrl}${path}`;
+    const res = await fetch(url, options);
+    if (!res.ok) {
+      const msg = await res.text().catch(() => '');
+      throw new Error(`API ${res.status}: ${msg || res.statusText}`);
     }
-    return (await response.json()) as T;
+    return res.json() as Promise<T>;
   }
 
-  protected async get<T>(endpoint: string): Promise<T> {
-    const res = await fetch(`${this.baseUrl}${endpoint}`);
-    return this.handleResponse<T>(res);
-  }
-
-  protected async post<T>(endpoint: string, data: object): Promise<T> {
-    const res = await fetch(`${this.baseUrl}${endpoint}`, {
+  get<T>(path: string): Promise<T> { return this.request<T>(path); }
+  post<T>(path: string, body: any): Promise<T> {
+    return this.request<T>(path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      body: JSON.stringify(body)
     });
-    return this.handleResponse<T>(res);
   }
 }

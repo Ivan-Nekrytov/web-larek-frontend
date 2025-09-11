@@ -1,17 +1,30 @@
-import { CatalogItem } from '../../types';
+import { ApiProduct } from '../../types/api';
+
+export interface CatalogItem extends ApiProduct {}
 
 export class CatalogStore {
-  private items: CatalogItem[] = [];
+  private itemsMap: Map<string, CatalogItem> = new Map();
+  private cdnUrl: string;
 
-  setProducts(products: CatalogItem[]) {
-    this.items = products;
+  constructor(cdnUrl: string) {
+    this.cdnUrl = cdnUrl;
   }
 
-  getProducts(): CatalogItem[] {
-    return this.items;
+  load(items: ApiProduct[]) {
+    this.itemsMap.clear();
+    items.forEach((item) => {
+      this.itemsMap.set(item.id, {
+        ...item,
+        image: item.image ? `${this.cdnUrl}${item.image}` : '',
+      });
+    });
   }
 
-  getProduct(id: string): CatalogItem | undefined {
-    return this.items.find(p => p.id === id);
+  getById(id: string): CatalogItem | undefined {
+    return this.itemsMap.get(id);
+  }
+
+  get items(): CatalogItem[] {
+    return Array.from(this.itemsMap.values());
   }
 }
