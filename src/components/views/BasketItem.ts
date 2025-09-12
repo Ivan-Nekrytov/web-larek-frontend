@@ -1,24 +1,27 @@
+import { ApiProduct } from '../../types';
+import { IEvents } from '../base/events';
+
 export class BasketItem {
-  private el: HTMLElement;
-  private titleEl: HTMLElement;
-  private priceEl: HTMLElement;
-  private indexEl: HTMLElement;
-  private deleteBtn: HTMLButtonElement;
+  constructor(private events: IEvents) {}
 
-  constructor(private template: HTMLTemplateElement, private onDelete: () => void) {
-    this.el = this.template.content.querySelector('.basket__item')!.cloneNode(true) as HTMLElement;
-    this.titleEl = this.el.querySelector('.card__title') as HTMLElement;
-    this.priceEl = this.el.querySelector('.card__price') as HTMLElement;
-    this.indexEl = this.el.querySelector('.basket__item-index') as HTMLElement;
-    this.deleteBtn = this.el.querySelector('.basket__item-delete') as HTMLButtonElement;
-    this.deleteBtn.onclick = () => this.onDelete();
-  }
+  render(data: ApiProduct & { index: number }): HTMLElement {
+    const el = document.createElement('li');
+    el.classList.add('basket__item');
 
-  mount(parent: HTMLElement) { parent.append(this.el); }
+    el.innerHTML = `
+      <span class="basket__index">${data.index}.</span>
+      <span class="basket__title">${data.title}</span>
+      <span class="basket__price">${data.price} ₽</span>
+      <button class="basket__remove" aria-label="Удалить товар">×</button>
+    `;
 
-  update(index: number, title: string, price: number) {
-    this.indexEl.textContent = String(index);
-    this.titleEl.textContent = title;
-    this.priceEl.textContent = `${price} синапсов`;
+    const removeBtn = el.querySelector('.basket__remove');
+    if (removeBtn) {
+      removeBtn.addEventListener('click', () => {
+        this.events.emit('basket:remove', data.id);
+      });
+    }
+
+    return el;
   }
 }

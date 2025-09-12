@@ -1,23 +1,16 @@
 export class Success {
-  private template: HTMLTemplateElement;
   private element: HTMLElement;
-  private totalEl: HTMLElement;
   private closeButton: HTMLButtonElement;
 
-  constructor(
-    template: HTMLTemplateElement,
-    private onClose?: () => void
-  ) {
-    this.template = template;
-    this.element = this.template.content.firstElementChild!.cloneNode(true) as HTMLElement;
-    this.totalEl = this.element.querySelector('.success__total')!;
-    this.closeButton = this.element.querySelector('.success__close') as HTMLButtonElement;
-
-    this.closeButton.onclick = () => this.onClose?.();
+  constructor(template: HTMLTemplateElement, onClose: () => void) {
+    this.element = template.content.firstElementChild!.cloneNode(true) as HTMLElement;
+    this.closeButton = this.element.querySelector('.order-success__close')!; // ← правильный селектор
+    this.closeButton.onclick = onClose;
   }
 
   render(total: number): HTMLElement {
-    this.totalEl.textContent = `${total} ₽`;
+    this.element.querySelector('.order-success__description')!.textContent = `Списано ${total} синапсов`;
     return this.element;
   }
 }
+

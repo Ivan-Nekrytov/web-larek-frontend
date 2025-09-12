@@ -32,7 +32,7 @@ export class CardPreview {
   render(): HTMLElement {
     if (this.titleEl) this.titleEl.textContent = this.product.title;
     if (this.descriptionEl) this.descriptionEl.textContent = this.product.description;
-    if (this.priceEl) this.priceEl.textContent = this.product.price + ' ₽';
+    if (this.priceEl) this.priceEl.textContent = this.product.price + ' синапсов';
     if (this.imgEl) this.imgEl.src = this.product.image;
 
     if (this.buttonEl) {

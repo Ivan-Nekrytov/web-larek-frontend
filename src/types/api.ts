@@ -12,7 +12,7 @@ export interface ApiList<T> {
   items: T[];
 }
 
-export type PaymentMethod = 'online' | 'cash';
+export type PaymentMethod = 'online' | 'onDelivery';
 
 export interface OrderRequest {
   payment: PaymentMethod;

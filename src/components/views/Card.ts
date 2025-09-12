@@ -18,7 +18,7 @@ export class Card {
 
   render(item: CatalogItem): HTMLElement {
     if (this.titleEl) this.titleEl.textContent = item.title;
-    if (this.priceEl) this.priceEl.textContent = item.price + ' ₽';
+    if (this.priceEl) this.priceEl.textContent = item.price + ' синапсов';
     if (this.imgEl) this.imgEl.src = item.image;
 
     this.element.onclick = () => this.onClick(item.id);

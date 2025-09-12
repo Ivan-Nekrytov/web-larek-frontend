@@ -14,10 +14,13 @@ import { FormContacts } from './components/views/FormContacts';
 import { Modal } from './components/views/Modal';
 import { Success } from './components/views/Success';
 import { PaymentMethod } from './types/api';
+import { BasketButton } from './components/views/BasketButton';
+import { Catalog } from './components/views/Catalog';
 
 const gallery = ensureElement<HTMLElement>('.gallery');
-const basketButton = ensureElement<HTMLButtonElement>('.header__basket');
-const basketCounter = ensureElement<HTMLElement>('.header__basket-counter');
+const basketButtonEl = ensureElement<HTMLButtonElement>('.header__basket');
+const basketCounterEl = ensureElement<HTMLElement>('.header__basket-counter');
+const basketButton = new BasketButton(basketButtonEl, basketCounterEl);
 const modalRoot = ensureElement<HTMLElement>('#modal-container');
 
 const tplCard = ensureElement<HTMLTemplateElement>('#card-catalog');
@@ -28,38 +31,29 @@ const tplOrder = ensureElement<HTMLTemplateElement>('#order');
 const tplContacts = ensureElement<HTMLTemplateElement>('#contacts');
 const tplSuccess = ensureElement<HTMLTemplateElement>('#success');
 
+
 const events = new EventBus();
 const api = new ApiClient(API_URL, CDN_URL);
 const catalog = new CatalogStore(CDN_URL);
 const cart = new CartStore();
 const checkout = new CheckoutStore();
 const modal = new Modal(modalRoot);
+const basket = new Basket(events, tplBasket);
+const catalogView = new Catalog(gallery, tplCard);
 
-function updateCounter() {
-  basketCounter.textContent = String(cart.count);
-}
+basketButton.updateCounter(cart.count);
 
-function renderCatalog() {
-  gallery.innerHTML = '';
-  catalog.items.forEach((item) => {
-    const card = new Card(tplCard, (id) => events.emit('card:open', { id }));
-    gallery.append(card.render(item));
-  });
-}
-
-api
-  .getProducts()
+api.getProducts()
   .then((items) => {
     catalog.load(items);
-    renderCatalog();
+    catalogView.render(catalog.items, (id) => events.emit('card:open', { id }));
   })
   .catch((err) => {
     console.error(err);
-    gallery.innerHTML =
-      '<p class="gallery__empty">Не удалось загрузить каталог</p>';
+    gallery.innerHTML = '<p class="gallery__empty">Не удалось загрузить каталог</p>';
   });
 
-basketButton.addEventListener('click', () => events.emit('cart:open'));
+basketButton.onClick(() => events.emit('cart:open'));
 
 events.on('card:open', ({ id }: { id: string }) => {
   const item = catalog.getById(id);
@@ -72,7 +66,7 @@ events.on('card:open', ({ id }: { id: string }) => {
     } else {
       cart.add(item);
     }
-    updateCounter();
+    basketButton.updateCounter(cart.count);
 
     // перерисовать превью после изменения
     const updatedPreview = new CardPreview(tplPreview, item, cart.has(id));
@@ -85,16 +79,6 @@ events.on('card:open', ({ id }: { id: string }) => {
 });
 
 events.on('cart:open', () => {
-  const basket = new Basket(
-    tplBasket,
-    tplBasketItem,
-    () => events.emit('order:open'),
-    (id: string) => {
-      cart.remove(id);
-      updateCounter();
-      events.emit('cart:open');
-    }
-  );
   modal.setContent(basket.render(cart.list(), cart.total));
   modal.open();
 });
@@ -133,7 +117,7 @@ events.on('contacts:open', () => {
         modal.open();
         cart.clear();
         checkout.reset();
-        updateCounter();
+        basketButton.updateCounter(cart.count);
       })
       .catch((err) => {
         console.error(err);
@@ -146,4 +130,4 @@ events.on('contacts:open', () => {
 
 events.on('modal:close', () => modal.close());
 
-updateCounter();
+basketButton.updateCounter(cart.count);
