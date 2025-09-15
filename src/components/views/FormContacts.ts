@@ -1,3 +1,5 @@
+import { validateContact } from './Validator';
+
 export class FormContacts {
   private template: HTMLTemplateElement;
   private element: HTMLElement;
@@ -17,42 +19,39 @@ export class FormContacts {
     this.submitButton = this.element.querySelector('button[type="submit"]') as HTMLButtonElement;
     this.errorsEl = this.element.querySelector('.form__errors')!;
 
-    const validate = () => {
-      let errors: string[] = [];
-
-      if (!this.emailInput.value.trim()) {
-        errors.push('Введите email');
-      } else if (!/^[\w.-]+@[\w.-]+\.\w+$/.test(this.emailInput.value.trim())) {
-        errors.push('Некорректный email');
-      }
-
-      if (!this.phoneInput.value.trim()) {
-        errors.push('Введите телефон');
-      } else if (!/^\+?\d{10,15}$/.test(this.phoneInput.value.trim())) {
-        errors.push('Некорректный телефон');
-      }
-
-      if (errors.length > 0) {
-        this.submitButton.disabled = true;
-        this.errorsEl.textContent = errors.join('. ');
-      } else {
-        this.submitButton.disabled = false;
-        this.errorsEl.textContent = '';
-      }
+    const validateAndSet = () => {
+      const data = {
+        email: this.emailInput.value.trim(),
+        phone: this.phoneInput.value.trim(),
+      };
+      const errors = validateContact(data);
+      this.setErrors(errors);
     };
 
-    this.emailInput.addEventListener('input', validate);
-    this.phoneInput.addEventListener('input', validate);
+    this.emailInput.addEventListener('input', validateAndSet);
+    this.phoneInput.addEventListener('input', validateAndSet);
 
     this.element.addEventListener('submit', (e) => {
       e.preventDefault();
-      validate();
+      validateAndSet();
       if (!this.submitButton.disabled) {
         const email = this.emailInput.value.trim();
         const phone = this.phoneInput.value.trim();
         this.onSubmit?.({ email, phone });
       }
     });
+
+    validateAndSet();
+  }
+
+  setErrors(errors: string[]) {
+    if (errors.length > 0) {
+      this.submitButton.disabled = true;
+      this.errorsEl.textContent = errors.join('. ');
+    } else {
+      this.submitButton.disabled = false;
+      this.errorsEl.textContent = '';
+    }
   }
 
   render(): HTMLElement {

@@ -12,9 +12,15 @@
     flex-grow: 1;
   }
 
+  &__empty {
+    opacity: 0.5;
+  }
+
   &__item {
     border-bottom: 1px solid $primary;
     padding: 1.5rem 0;
+    display: flex;
+    align-items: center;
 
     &-index {
       @include mixins.flex(row);

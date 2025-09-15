@@ -1,4 +1,6 @@
 import { CatalogItem } from '../models/CatalogStore';
+import { applyCategory } from '../../utils/category';
+import { CURRENCY } from '../../utils/constants';
 
 export class CardPreview {
   private element: HTMLElement;
@@ -7,16 +9,22 @@ export class CardPreview {
   private priceEl: HTMLElement | null;
   private imgEl: HTMLImageElement | null;
   private buttonEl: HTMLButtonElement | null;
+  private categoryEl: HTMLElement | null;
 
   private onToggle: (() => void) | null = null;
 
-  constructor(template: HTMLTemplateElement, private product: CatalogItem, private inCart: boolean) {
+  constructor(
+    template: HTMLTemplateElement,
+    private product: CatalogItem,
+    private inCart: boolean
+  ) {
     this.element = template.content.firstElementChild!.cloneNode(true) as HTMLElement;
     this.titleEl = this.element.querySelector('.card__title');
     this.descriptionEl = this.element.querySelector('.card__description');
     this.priceEl = this.element.querySelector('.card__price');
     this.imgEl = this.element.querySelector('.card__image');
     this.buttonEl = this.element.querySelector('.card__button');
+    this.categoryEl = this.element.querySelector('.card__category');
 
     if (this.buttonEl) {
       this.buttonEl.addEventListener('click', () => {
@@ -32,8 +40,10 @@ export class CardPreview {
   render(): HTMLElement {
     if (this.titleEl) this.titleEl.textContent = this.product.title;
     if (this.descriptionEl) this.descriptionEl.textContent = this.product.description;
-    if (this.priceEl) this.priceEl.textContent = this.product.price + ' синапсов';
+    if (this.priceEl) this.priceEl.textContent = `${this.product.price} ${CURRENCY}`;
     if (this.imgEl) this.imgEl.src = this.product.image;
+
+    applyCategory(this.categoryEl, this.product.category);
 
     if (this.buttonEl) {
       this.buttonEl.textContent = this.inCart ? 'Убрать из корзины' : 'В корзину';

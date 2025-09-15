@@ -16,6 +16,7 @@ import { Success } from './components/views/Success';
 import { PaymentMethod } from './types/api';
 import { BasketButton } from './components/views/BasketButton';
 import { Catalog } from './components/views/Catalog';
+import { BasketItem } from './components/views/BasketItem';
 
 const gallery = ensureElement<HTMLElement>('.gallery');
 const basketButtonEl = ensureElement<HTMLButtonElement>('.header__basket');
@@ -67,8 +68,6 @@ events.on('card:open', ({ id }: { id: string }) => {
       cart.add(item);
     }
     basketButton.updateCounter(cart.count);
-
-    // перерисовать превью после изменения
     const updatedPreview = new CardPreview(tplPreview, item, cart.has(id));
     updatedPreview.setOnToggle(preview['onToggle']!);
     modal.setContent(updatedPreview.render());
@@ -79,9 +78,43 @@ events.on('card:open', ({ id }: { id: string }) => {
 });
 
 events.on('cart:open', () => {
-  modal.setContent(basket.render(cart.list(), cart.total));
+  const container = basket.render(cart.list(), cart.total);
+
+  const listEl = container.querySelector('.basket__list')!;
+  listEl.innerHTML = '';
+  cart.list().forEach((item, i) => {
+    const basketItem = new BasketItem(events, tplBasketItem);
+    listEl.appendChild(
+      basketItem.render({
+        ...item,
+        id: item.id,
+        index: i + 1,
+      })
+    );
+  });
+
+  modal.setContent(container);
   modal.open();
 });
+
+events.on('cart:remove', ({ id }: { id: string }) => {
+
+  cart.remove(id);
+  basketButton.updateCounter(cart.count);
+
+  const container = basket.render(cart.list(), cart.total);
+  const listEl = container.querySelector('.basket__list')!;
+  listEl.innerHTML = '';
+  cart.list().forEach((item, i) => {
+    const basketItem = new BasketItem(events, tplBasketItem);
+    listEl.appendChild(
+      basketItem.render({ ...item,id: item.id, index: i + 1 })
+    );
+  });
+
+  modal.setContent(container);
+});
+
 
 events.on('order:open', () => {
   const form = new FormOrder(tplOrder, ({ payment, address }) => {

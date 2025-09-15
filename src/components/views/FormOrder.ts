@@ -24,7 +24,6 @@ export class FormOrder {
       submitBtn.disabled = !(this.selectedPayment && addressInput.value.trim());
     };
 
-    // обработка выбора оплаты
     cardBtn.addEventListener('click', () => {
       this.selectedPayment = 'online';
       cardBtn.classList.add('button_alt-active');
@@ -39,10 +38,8 @@ export class FormOrder {
       updateSubmitState();
     });
 
-    // обработка адреса
     addressInput.addEventListener('input', updateSubmitState);
 
-    // сабмит
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       if (!this.selectedPayment) return;

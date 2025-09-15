@@ -14,7 +14,7 @@ export class Api {
   }
 
   get<T>(path: string): Promise<T> { return this.request<T>(path); }
-  post<T>(path: string, body: any): Promise<T> {
+  post<T>(path: string, body: unknown): Promise<T> {
     return this.request<T>(path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

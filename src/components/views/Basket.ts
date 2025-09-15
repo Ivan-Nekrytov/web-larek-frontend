@@ -1,35 +1,20 @@
 import { ApiProduct } from '../../types';
-import { BasketItem } from './BasketItem';
 import { IEvents } from '../base/events';
+import { CURRENCY } from '../../utils/constants';
 
 export class Basket {
   private container: HTMLElement;
-  private listEl: HTMLElement;
   private totalEl: HTMLElement;
   private orderBtn: HTMLButtonElement | null;
+  private emptyMessage: HTMLElement | null; // 👈 добавили ссылку
 
   constructor(private events: IEvents, private template: HTMLTemplateElement) {
     this.container = template.content.firstElementChild!.cloneNode(true) as HTMLElement;
-    this.listEl = this.container.querySelector('.basket__list') as HTMLElement;
+
     const totalQuery =
       this.container.querySelector('.basket__total') ||
       this.container.querySelector('.basket__price');
     this.totalEl = totalQuery as HTMLElement;
-
-    // кнопка "Оформить"
-    this.orderBtn = this.container.querySelector('.basket__button') as HTMLButtonElement;
-    if (this.orderBtn) {
-      this.orderBtn.addEventListener('click', () => {
-        this.events.emit('order:open');
-      });
-    }
-
-    // Fallbacks
-    if (!this.listEl) {
-      this.listEl = document.createElement('ul');
-      this.listEl.className = 'basket__list';
-      this.container.appendChild(this.listEl);
-    }
 
     if (!this.totalEl) {
       const actions = this.container.querySelector('.modal__actions') || this.container;
@@ -37,21 +22,30 @@ export class Basket {
       this.totalEl.className = 'basket__total';
       actions.appendChild(this.totalEl);
     }
+
+    this.orderBtn = this.container.querySelector('.basket__button') as HTMLButtonElement;
+    if (this.orderBtn) {
+      this.orderBtn.addEventListener('click', () => {
+        this.events.emit('order:open');
+      });
+    }
+
+    this.emptyMessage = this.container.querySelector('.basket__empty') as HTMLElement;
   }
 
   render(items: ApiProduct[], total: number): HTMLElement {
-    this.listEl.innerHTML = '';
+    if (this.totalEl) {
+      this.totalEl.textContent = `${total} ${CURRENCY}`;
+    }
 
-    items.forEach((item, index) => {
-      const basketItem = new BasketItem(this.events);
-      const basketItemEl = basketItem.render({
-        ...item,
-        index: index + 1,
-      });
-      this.listEl.appendChild(basketItemEl);
-    });
+    if (this.orderBtn) {
+      this.orderBtn.disabled = items.length === 0;
+    }
 
-    this.totalEl.textContent = `${total} ₽`;
+    if (this.emptyMessage) {
+      this.emptyMessage.hidden = items.length !== 0;
+    }
+
     return this.container;
   }
 }

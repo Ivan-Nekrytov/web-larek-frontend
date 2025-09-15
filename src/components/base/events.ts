@@ -1,5 +1,5 @@
 export type EventName = string | RegExp;
-export type EventHandler<T = any> = (payload: T) => void;
+export type EventHandler<T = unknown> = (payload: T) => void;
 
 export interface IEvents {
   on<T = any>(event: EventName, handler: EventHandler<T>): void;
