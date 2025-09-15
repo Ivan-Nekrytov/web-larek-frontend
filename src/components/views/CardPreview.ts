@@ -21,7 +21,7 @@ export class CardPreview {
   ) {
     this.element = template.content.firstElementChild!.cloneNode(true) as HTMLElement;
     this.titleEl = this.element.querySelector('.card__title');
-    this.descriptionEl = this.element.querySelector('.card__description');
+    this.descriptionEl = this.element.querySelector('.card__text');
     this.priceEl = this.element.querySelector('.card__price');
     this.imgEl = this.element.querySelector('.card__image');
     this.buttonEl = this.element.querySelector('.card__button');
