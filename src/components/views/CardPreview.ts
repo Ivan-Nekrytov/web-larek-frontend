@@ -1,6 +1,7 @@
 import { CatalogItem } from '../models/CatalogStore';
 import { applyCategory } from '../../utils/category';
 import { CURRENCY } from '../../utils/constants';
+import { formatPrice } from '../../utils/utils';
 
 export class CardPreview {
   private element: HTMLElement;
@@ -40,14 +41,20 @@ export class CardPreview {
   render(): HTMLElement {
     if (this.titleEl) this.titleEl.textContent = this.product.title;
     if (this.descriptionEl) this.descriptionEl.textContent = this.product.description;
-    if (this.priceEl) this.priceEl.textContent = `${this.product.price} ${CURRENCY}`;
+    if (this.priceEl) this.priceEl.textContent = formatPrice(this.product.price);
     if (this.imgEl) this.imgEl.src = this.product.image;
 
     applyCategory(this.categoryEl, this.product.category);
 
-    if (this.buttonEl) {
-      this.buttonEl.textContent = this.inCart ? 'Убрать из корзины' : 'В корзину';
-    }
+   if (this.buttonEl) {
+   if (this.product.price === null) {
+    this.buttonEl.textContent = 'Недоступно';
+    this.buttonEl.disabled = true;
+  } else {
+      this.buttonEl.textContent = this.inCart ? 'Удалить из корзины' : 'Купить';
+    this.buttonEl.disabled = false;
+  }
+}
 
     return this.element;
   }

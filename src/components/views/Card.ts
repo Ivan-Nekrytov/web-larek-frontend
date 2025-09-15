@@ -1,6 +1,7 @@
 import { CatalogItem } from '../models/CatalogStore';
 import { applyCategory } from '../../utils/category';
 import { CURRENCY } from '../../utils/constants';
+import { formatPrice } from '../../utils/utils';
 
 export class Card {
   private element: HTMLElement;
@@ -22,7 +23,7 @@ export class Card {
 
   render(item: CatalogItem): HTMLElement {
     if (this.titleEl) this.titleEl.textContent = item.title;
-    if (this.priceEl) this.priceEl.textContent = `${item.price} ${CURRENCY}`;
+    if (this.priceEl) this.priceEl.textContent = formatPrice(item.price);
     if (this.imgEl) this.imgEl.src = item.image;
 
     applyCategory(this.categoryEl, item.category);
