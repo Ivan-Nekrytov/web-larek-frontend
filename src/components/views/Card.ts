@@ -22,7 +22,14 @@ export class Card {
   }
 
   render(item: CatalogItem): HTMLElement {
-    if (this.titleEl) this.titleEl.textContent = item.title;
+   if (this.titleEl) {
+   if (item.title.startsWith('Кнопка ')) {
+    const parts = item.title.split(' ');
+    this.titleEl.innerHTML = parts[0] + '<br>' + parts.slice(1).join(' ');
+  } else {
+    this.titleEl.textContent = item.title;
+  }
+}
     if (this.priceEl) this.priceEl.textContent = formatPrice(item.price);
     if (this.imgEl) this.imgEl.src = item.image;
 

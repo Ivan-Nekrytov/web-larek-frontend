@@ -39,7 +39,14 @@ export class CardPreview {
   }
 
   render(): HTMLElement {
-    if (this.titleEl) this.titleEl.textContent = this.product.title;
+    if (this.titleEl) {
+    if (this.product.title.startsWith('Кнопка ')) {
+    const parts = this.product.title.split(' ');
+    this.titleEl.innerHTML = parts[0] + '<br>' + parts.slice(1).join(' ');
+  } else {
+    this.titleEl.textContent = this.product.title;
+  }
+}
     if (this.descriptionEl) this.descriptionEl.textContent = this.product.description;
     if (this.priceEl) this.priceEl.textContent = formatPrice(this.product.price);
     if (this.imgEl) this.imgEl.src = this.product.image;

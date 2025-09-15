@@ -26,6 +26,7 @@
 
     .card__title {
       flex-grow: 1;
+      max-width: none;
     }
   }
 
@@ -50,6 +51,8 @@
     font-weight: 500;
     margin: 0;
     flex-grow: 1;
+    max-width: fit-content;
+    text-align: start;
   }
   &__text {
     text-align: left;
@@ -60,6 +63,7 @@
     border-radius: 2.5rem;
     margin-bottom: 12px;
     color: $primary;
+    max-width: fit-content;
 
     &_soft {
       background-color: $category1;
@@ -76,9 +80,6 @@
     &_button {
       background-color: $category4;
     }
-  }
-  &__action {
-
   }
   &__price {
     margin-right: auto;
